@@ -1,3 +1,3 @@
 title=Evaluator
-author=Kivy team
+author=pmgv
 orientation=landscape
