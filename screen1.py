@@ -16,6 +16,7 @@ from datetime import datetime
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from kivy.uix.image import Image
+from kivy.logger import Logger
 import requests
 from numpy import asarray
 
@@ -28,13 +29,13 @@ class Screen1(Screen):
         self.local_head=[]
         
         self.layout = FloatLayout()
-        self.layout.add_widget(Label(pos_hint={'center_x':0.5, 'center_y':0.9}, text='Programa de Mejoramiento de Vides\nINIA La Platina, 2019', color=[1,1,1,0.65]))
+        self.layout.add_widget(Label(pos_hint={'center_x':0.5, 'center_y':0.9}, text='Field data annotator', color=[1,1,1,0.65]))
 
         self.main_grid=GridLayout(cols=1, rows=4, size_hint=(0.3,0.3), pos_hint={'center_x':0.5, 'center_y':0.5})
         self.layout.add_widget(self.main_grid)
         self.main_grid.add_widget(Button(text="Explore", on_release=self.change_page))
         self.main_grid.add_widget(Button(text="Sync", on_release=self.check_local))
-        self.main_grid.add_widget(Button(text="Borrar datos", on_release=self.wipe_warning))
+        self.main_grid.add_widget(Button(text="Erase local data", on_release=self.wipe_warning))
         self.sync_stat=Label(text="Loading...")
         self.main_grid.add_widget(self.sync_stat)
 
@@ -64,7 +65,9 @@ class Screen1(Screen):
         self.spread_stat="loading"
         try:
             self.client = gspread.authorize(self.creds)
-            self.spreadsheet = self.client.open_by_url('https://docs.google.com/spreadsheets/d/19K0hJHnFIKh2VRMNEZ6sSf2-P9iDg8iZ8zZBYN06gp8/')
+            # self.spreadsheet = self.client.open_by_url('https://docs.google.com/spreadsheets/d/19K0hJHnFIKh2VRMNEZ6sSf2-P9iDg8iZ8zZBYN06gp8/')
+            self.spreadsheet = self.client.open_by_url('https://docs.google.com/spreadsheets/d/1P0gWdjtvZlVsWxTz4wyzYYIWj87pJj75CEuL8Wf2moY/')
+            # print("################ open client correct")
             self.copy_gs_local()
             ws = self.spreadsheet.worksheet("prop")
 
@@ -79,12 +82,16 @@ class Screen1(Screen):
 
             self.spread_stat="ok"
             return
-        except:
+        except Exception as e:
+            # Logger.info("########## {}".format(str(e)))
             self.spread_stat="bad"
             return
 
     def copy_gs_local(self):
-        response = requests.get('https://docs.google.com/spreadsheet/ccc?key=19K0hJHnFIKh2VRMNEZ6sSf2-P9iDg8iZ8zZBYN06gp8&output=csv')
+        # response = requests.get('https://docs.google.com/spreadsheet/ccc?key=19K0hJHnFIKh2VRMNEZ6sSf2-P9iDg8iZ8zZBYN06gp8&output=csv')
+        response = requests.get('https://docs.google.com/spreadsheet/ccc?key=1P0gWdjtvZlVsWxTz4wyzYYIWj87pJj75CEuL8Wf2moY&output=csv')
+        # print("################ copy gs {}".format(response.status_code))
+        # Logger.info("########## {}".format(response.status_code))
         assert response.status_code == 200, 'Wrong status code'
         filess = open("./local_data/online.csv", "wb")
         filess.write(response.content)
@@ -92,6 +99,8 @@ class Screen1(Screen):
         self.local_copy=[n.split(",") for n in response.content.decode("utf-8").split("\r\n")]
 
     def check_local(self, dt=None):
+        # print("################ check_local {}".format(self.spread_stat))
+        # Logger.info("########## check_local {}".format(self.spread_stat))
         if "local.csv" not in listdir("./local_data/"):
             if self.spread_stat == "ok":
                 filess = open("./local_data/local.csv", "w")
@@ -110,7 +119,6 @@ class Screen1(Screen):
             else:
                 self.load_local()
                 self.sync_stat.text="Not sync"
-                #print(self.local_copy[0])
                 return
         pass
 
@@ -156,14 +164,12 @@ class Screen1(Screen):
 
         cell_list=[]
 
-        #print(col_index)
 
         for n in to_add: #replace only changed fields
             try:
                 cell = ws.find(n[0])
             
 
-            #print(cell.row, cell.col)
 
                 for v in col_index:
                     if len(n[v])==0:
@@ -189,30 +195,30 @@ class Screen1(Screen):
         if self.sync_stat.text=="Sync":
             self.add_widget(self.layout)
         elif self.sync_stat.text=="No data":
-            self.warning_msg.text="No se puede sincronizar"
-            self.warning_yes.text="Reintentar"
-            self.warning_no.text="Reintentar"
+            self.warning_msg.text="Cannot sync"
+            self.warning_yes.text="Retry"
+            self.warning_no.text="Retry"
             self.add_widget(self.warning)
         else:
-            self.warning_msg.text="No se puede sincronizar"
-            self.warning_yes.text="Reintentar"
-            self.warning_no.text="Continuar offline"
+            self.warning_msg.text="Cannot sync"
+            self.warning_yes.text="Retry"
+            self.warning_no.text="Continue offline"
             self.add_widget(self.warning)
 
     def wipe_warning(self,dt=None):
         self.remove_widget(self.layout)
-        self.warning_msg.text="Borrar los datos locales?"
-        self.warning_yes.text="Borrar"
-        self.warning_no.text="Continuar"
+        self.warning_msg.text="Erase local data?"
+        self.warning_yes.text="Erase"
+        self.warning_no.text="Continue"
         self.add_widget(self.warning)
 
     def clear_warning(self, dt=None):
-        if dt.text=='Reintentar':
+        if dt.text=='Retry':
             self.try_again()
-        elif dt.text=="Continuar offline" or dt.text=="Continuar":
+        elif dt.text=="Continue offline" or dt.text=="Continue":
             self.remove_widget(self.warning)
             self.add_widget(self.layout)
-        elif dt.text=="Borrar":
+        elif dt.text=="Erase":
             self.wipe_local()
             
 
@@ -231,14 +237,14 @@ class Screen1(Screen):
         if self.sync_stat.text=="Sync":
             self.add_widget(self.layout)
         elif self.sync_stat.text=="No data":
-            self.warning_msg.text="No se puede sincronizar"
-            self.warning_yes.text="Reintentar"
-            self.warning_no.text="Reintentar"
+            self.warning_msg.text="Cannot sync"
+            self.warning_yes.text="Retry"
+            self.warning_no.text="Retry"
             self.add_widget(self.warning)
         else:
-            self.warning_msg.text="No se puede sincronizar"
-            self.warning_yes.text="Reintentar"
-            self.warning_no.text="Continuar offline"
+            self.warning_msg.text="Cannot sync"
+            self.warning_yes.text="Retry"
+            self.warning_no.text="Continue offline"
             self.add_widget(self.warning)
 
     def change_page(self,dt=None):

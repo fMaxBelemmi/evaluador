@@ -104,7 +104,7 @@ class DatCat(GridLayout):
         self.add_widget(self.stored[0])
         self.add_widget(self.stored[1])
         self.add_widget(self.stored[2])
-        self.add_widget(Button(text="actual", on_release=self.fix_today))
+        self.add_widget(Button(text="now", on_release=self.fix_today))
 
     def happening(self, dt=None):
         print("wawawa")
@@ -480,18 +480,18 @@ class Screen2(Screen):
         
         self.layout.add_widget(self.buttons_grid)
 
-        self.toggle=ToggleButton(text="Filtros: OFF", on_release=self.toggle_filters)
+        self.toggle=ToggleButton(text="Filters: OFF", on_release=self.toggle_filters)
 
         self.filter_buttons=GridLayout(rows=1, cols=4,size_hint=(1,0.2), pos_hint={'center_x':0.5, 'center_y':0.1})
-        self.filter_buttons.add_widget(Button(text="Aplicar", on_release=self.apply_filter))
+        self.filter_buttons.add_widget(Button(text="Apply", on_release=self.apply_filter))
         self.filter_buttons.add_widget(self.toggle)
-        self.filter_buttons.add_widget(Button(text="Limpiar", on_release=self.apply_filter))
-        self.filter_buttons.add_widget(Button(text="Retroceder", on_release=self.apply_filter))
+        self.filter_buttons.add_widget(Button(text="Clear", on_release=self.apply_filter))
+        self.filter_buttons.add_widget(Button(text="Back", on_release=self.apply_filter))
         
         self.filter_toggle=False
 
-        self.buttons_grid.add_widget(Button(text="Retroceder", on_release=self.back))
-        self.buttons_grid.add_widget(Button(text="Filtrar", on_release=self.show_filters))
+        self.buttons_grid.add_widget(Button(text="Back", on_release=self.back))
+        self.buttons_grid.add_widget(Button(text="Filter", on_release=self.show_filters))
         
         self.buttons_grid.add_widget(Button(text="<", on_release=self.list_explore))
         self.buttons_grid.add_widget(Button(text=">", on_release=self.list_explore))
@@ -719,9 +719,9 @@ class Screen2(Screen):
         
     def toggle_filters(self,dt=None):
         if self.toggle.state=="down":
-            self.toggle.text="Filtrar: ON"
+            self.toggle.text="Filter: ON"
         else:
-            self.toggle.text="Filtrar: OFF"
+            self.toggle.text="Filter: OFF"
 
     def open_plant(self, dt=None):
         number=0
@@ -747,12 +747,12 @@ class Screen2(Screen):
         self.add_widget(self.page_scroll)
 
         grid=GridLayout(rows=1, cols=2,size_hint=(1,0.2), pos_hint={'center_x':0.5, 'center_y':0.1})
-        grid.add_widget(Button(text="Guardar", on_release=self.save_data))
-        grid.add_widget(Button(text="Retroceder", on_release=self.save_data))
+        grid.add_widget(Button(text="Save", on_release=self.save_data))
+        grid.add_widget(Button(text="Back", on_release=self.save_data))
         self.add_widget(grid)
 
     def save_data(self, dt=None):
-        if dt.text=="Guardar":
+        if dt.text=="Save":
             self.filtered=[]
 
             for n in range(len(self.config_list[3][0])):
@@ -788,7 +788,7 @@ class Screen2(Screen):
 
     def apply_filter(self, dt=None):
         #print(self.config_list[3])
-        if dt.text=="Aplicar":
+        if dt.text=="Apply":
             
             self.toggle.state="down"
             self.toggle_filters()
@@ -801,7 +801,7 @@ class Screen2(Screen):
             self.list_index=0
             self.direction=1
             self.load_list()
-        elif dt.text=="Limpiar":
+        elif dt.text=="Clear":
             self.toggle.state="normal"
             self.toggle_filters()
             while len(self.config_list[3][4])<len(self.config_list[3][0]):

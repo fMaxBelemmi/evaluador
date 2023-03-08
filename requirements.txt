@@ -1,0 +1,9 @@
+kivy
+numpy
+google-auth-oauthlib
+httplib2
+pyasn1
+pyasn1-modules
+rsa
+oauth2client
+gspread
